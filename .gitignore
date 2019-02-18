@@ -1,22 +1,7 @@
 #
 *~
-*-eps-converted-to.pdf
-.#*
 
-*.aux
-*.idx
-*.log
-*.toc
-*.snm
-*.nav
-
-TeX/out.txt
-TeX/current.pdf
-TeX/lesson??.pdf
-TeX/lesson??.out
-Compendium/compendium.pdf
-Compendium/out.txt
-
-.ipynb_checkpoints
 Temp
+.ipynb_checkpoints
 __pycache__
+libitmal/dataloaders.py
