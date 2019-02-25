@@ -33,19 +33,103 @@ def MNIST_GetDataSet():
     #  ...
     #return ...    
     
-def MNIST_GetDataSet(fetchmode=True):
+# CEF: A production-code ready version of get MNIST
+# Will try three different methods (sklearn v0.18, v0.20 and keras)
+# 
+def MNIST_GetDataSet(fetchmode=True, reshape784=True, debug=False):
+    import numpy as np
+    try:
+        from sklearn.datasets import fetch_mldata
+        has_datasets_fetch_mldata=True
+    except:
+        has_datasets_fetch_mldata=False    
+
+    try:
+        from sklearn.datasets import fetch_openml
+        has_datasets_fetch_openml=True
+    except:
+        has_datasets_fetch_openml=False
+
+    try:
+        from keras.datasets import mnist
+        has_kerasinstalled=True    
+    except:
+        has_kerasinstalled=False
+
     if fetchmode:
-        d = fetch_mldata('MNIST original')
-        X, y= d["data"], d["target"]  
+        if has_datasets_fetch_mldata:
+            if debug:
+                print("MNIST_GetDataSet(), in fetchmode, using fetch_mldata()...")
+            # API Change Deprecated sklearn.datasets.fetch_mldata to be removed in 
+            # version 0.22. mldata.org is no longer operational. Until removal it
+            # will remain possible to load cached datasets. 
+            #11466 by Joel Nothman.            
+            d = fetch_mldata('MNIST original')
+        elif has_datasets_fetch_openml:
+            if debug:
+                print("MNIST_GetDataSet(), in fetchmode, using fetch_openml()...")
+            # scikit-learn v0.20.2
+            d = fetch_openml('mnist_784', version=1, cache=True)
+        else:
+            raise ImportError("neither fetch_mldata() nor fetch_openml() was found in sklearn.datasets, so load of MNIST in fetchmod will not work!")
+    
+        X, y= d["data"], d["target"]          
     else:
-        (X_train, y_train), (X_test, y_test) = mnist.load_data()
-        X, y = np.concatenate((X_train, X_test)), np.concatenate((y_train, y_test))
+        if debug:
+            print("MNIST_GetDataSet(), in non-fetchmode, using keras mnist.load_data()...")            
+        if has_kerasinstalled:            
+            (X_train, y_train), (X_test, y_test) = mnist.load_data()
+            X, y = np.concatenate((X_train, X_test)), np.concatenate((y_train, y_test))
+        else:
+            raise ImportError("You do not have Keras installed, so keras.datasets.mnist.load_data() will not work!")
     
     # NOTE: notice that X and y are defined inside if's, not in outer scope as in C++, strange!
-    assert X.shape[0]==70000    
+    # NOTE: hardcoded sizes, 70000 x 28 x 28 or 70000 x 784
+    assert X.ndim==2 or X.ndim==3
+    assert (X.ndim==2 and X.shape[1]==784) or (X.ndim==3 and X.shape[1]==28 and X.shape[2]==28) 
+    
+    if reshape784 and X.ndim==2:
+        assert X.shape[1]==784
+        X=np.reshape(X, (70000, 28, 28))        
+        assert X.ndim==3
+        assert X.shape[1]==28 and X.shape[2]==28
+   
+    assert X.shape[0]==70000 
     assert X.shape[0]==y.shape[0]
     assert y.ndim==1
+        
     return X, y
+
+def Test_MNIST_GetDataSet():
+    # Local function, pretty neat huh?
+    def PrintShapeAndType(X, y, n):
+        print('')
+        print(f'X{n}.shape={X.shape}), X{n}.dtype={X.dtype}') 
+        print(f'y{n}.shape={y.shape}), y{n}.dtype={y.dtype})') 
+        
+        assert X.shape[0]==y.shape[0]
+        assert X.ndim==2 or X.ndim==3
+        assert (X.ndim==2 and X.shape[1]==784) or (X.ndim==3 and X.shape[1]==28 and X.shape[2]==28) 
+        
+    X1, y1=MNIST_GetDataSet(fetchmode=True,  reshape784=True)
+    X2, y2=MNIST_GetDataSet(fetchmode=False, reshape784=True)
+    X3, y3=MNIST_GetDataSet(fetchmode=True,  reshape784=False)
+    X4, y4=MNIST_GetDataSet(fetchmode=False, reshape784=False)
+          
+    PrintShapeAndType(X1, y1, '1')
+    PrintShapeAndType(X2, y2, '2')
+    PrintShapeAndType(X3, y3, '3')
+    PrintShapeAndType(X4, y4, '4')
+              
+    # NOT test of ndim or X.shape[1], X1.shape[2]
+    assert X1.shape[0]==X2.shape[0], f'unequal X shapes, X1.shape[0]={X1.shape[0]}, X2.shape[0]={X2.shape[0]}'
+    assert X1.shape[0]==X3.shape[0], f'unequal X shapes, X1.shape[0]={X1.shape[0]}, X3.shape[0]={X3.shape[0]}'
+    assert X1.shape[0]==X4.shape[0], f'unequal X shapes, X1.shape[0]={X1.shape[0]}, X4.shape[0]={X4.shape[0]}'
+    assert y1.shape==y2.shape, f'unequal y shapes, y1.shape={y1.shape}, y2.shape={y2.shape}'
+    assert y1.shape==y3.shape, f'unequal y shapes, y1.shape={y1.shape}, y3.shape={y3.shape}'
+    assert y1.shape==y4.shape, f'unequal y shapes, y1.shape={y1.shape}, y4.shape={y4.shape}'
+        
+    #MNIST_PlotDigit(X2[1])
 
 def IRIS_GetDataSet():
     # import some data to play with
@@ -80,6 +164,25 @@ def TrainTestSplit(X, y, N, shuffle=True, verbose=False):
     
     return X_train, X_test, y_train, y_test
 
+def Versions():    
+    import sys
+    print(f'{"Python version:":24s} {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}.')
+    try:
+        import sklearn as skl 
+        print(f'{"Scikit-learn version:":24s} {skl.__version__}.')
+    except:
+        print(f'WARN: could not find sklearn!')  
+    try:
+        import keras as kr
+        print(f'{"Keras version:":24s} {kr.__version__}')
+    except:
+        print(f'WARN: could not find keras!')  
+    try:
+        import tensorflow as tf
+        print(f'{"Tensorflow version:":24s} {tf.__version__}')
+    except:
+        print(f'WARN: could not find tensorflow!')  
+        
 ######################################################################################################
 # 
 # TESTS
@@ -87,6 +190,8 @@ def TrainTestSplit(X, y, N, shuffle=True, verbose=False):
 ######################################################################################################
 
 def TestAll():
+    Test_MNIST_GetDataSet()
+    Versions()
     print("ALL OK")
 
 if __name__ == '__main__':
