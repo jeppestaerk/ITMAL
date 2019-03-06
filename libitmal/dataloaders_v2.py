@@ -11,14 +11,13 @@ from sklearn.datasets import fetch_mldata
 from keras.datasets import mnist
 from sklearn import datasets
 
-def MOON_GetDataSet(n_samples=100):
-    X, y=make_moons(n_samples=n_samples, noise=0.1, random_state=0)
+def MOON_GetDataSet(n_samples=100, noise=0.1, random_state=0):
+    X, y=datasets.make_moons(n_samples=n_samples, noise=noise, random_state=random_state)
     return X, y
 
 def MOON_Plot(X, y):
     figure = plt.figure(figsize=(12, 9))
     plt.scatter(X[:, 0], X[:, 1], marker='o', c=y, s=25, edgecolor='k');
-
 
 def MNIST_PlotDigit(data):
     image = data.reshape(28, 28)
