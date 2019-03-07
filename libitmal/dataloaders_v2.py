@@ -82,6 +82,9 @@ def MNIST_GetDataSet(fetchmode=True, reshape784=True, debug=False):
         else:
             raise ImportError("You do not have Keras installed, so keras.datasets.mnist.load_data() will not work!")
     
+    if y.dtype!='uint8':
+        y = y.astype('uint8')
+        
     # NOTE: notice that X and y are defined inside if's, not in outer scope as in C++, strange!
     # NOTE: hardcoded sizes, 70000 x 28 x 28 or 70000 x 784
     assert X.ndim==2 or X.ndim==3
@@ -96,7 +99,10 @@ def MNIST_GetDataSet(fetchmode=True, reshape784=True, debug=False):
     assert X.shape[0]==70000 
     assert X.shape[0]==y.shape[0]
     assert y.ndim==1
-        
+     
+    assert X.dtype=='uint8'
+    assert y.dtype=='uint8'
+          
     return X, y
 
 def Test_MNIST_GetDataSet():
@@ -127,7 +133,24 @@ def Test_MNIST_GetDataSet():
     assert y1.shape==y2.shape, f'unequal y shapes, y1.shape={y1.shape}, y2.shape={y2.shape}'
     assert y1.shape==y3.shape, f'unequal y shapes, y1.shape={y1.shape}, y3.shape={y3.shape}'
     assert y1.shape==y4.shape, f'unequal y shapes, y1.shape={y1.shape}, y4.shape={y4.shape}'
-        
+    assert type(X1)==type(X2), f'diff types, type(X1)={type(X1)}, type(X2)={type(X2)}' 
+    assert type(X1)==type(X3), f'diff types, type(X1)={type(X1)}, type(X3)={type(X3)}' 
+    assert type(X1)==type(X4), f'diff types, type(X1)={type(X1)}, type(X4)={type(X4)}' 
+    assert type(y1)==type(y2), f'diff types, type(y1)={type(y1)}, type(y2)={type(y2)}' 
+    assert type(y1)==type(y3), f'diff types, type(y1)={type(y1)}, type(y3)={type(y3)}' 
+    assert type(y1)==type(y4), f'diff types, type(y1)={type(y1)}, type(y4)={type(y4)}' 
+                                                                            
+    assert X1.dtype==X2.dtype, f'diff dtypes, X1.dtype={X1.dtype}, X2.dtype={X2.dtype}' 
+    assert X1.dtype==X3.dtype, f'diff dtypes, X1.dtype={X1.dtype}, X3.dtype={X3.dtype}' 
+    assert X1.dtype==X4.dtype, f'diff dtypes, X1.dtype={X1.dtype}, X4.dtype={X4.dtype}' 
+    assert y1.dtype==y2.dtype, f'diff dtypes, y1.dtype={y1.dtype}, y2.dtype={y2.dtype}' 
+    assert y1.dtype==y3.dtype, f'diff dtypes, y1.dtype={y1.dtype}, y3.dtype={y3.dtype}' 
+    assert y1.dtype==y4.dtype, f'diff dtypes, y1.dtype={y1.dtype}, y4.dtype={y4.dtype}'         
+    
+    #assert np.array_equal(X1,X3)
+    assert np.array_equal(X2,X4)
+    assert np.array_equal(y2,y4)    
+    #assert (X1.ravel()==X2.ravel()).all()
     #MNIST_PlotDigit(X2[1])
 
 def IRIS_GetDataSet():
