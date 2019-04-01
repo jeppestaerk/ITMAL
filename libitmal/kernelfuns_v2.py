@@ -40,16 +40,16 @@ def EnableGPU(gpu_mem_fraction=0.05, gpus=None, cpus=None):
         import tensorflow as tf
         from keras.backend.tensorflow_backend import set_session
         config = tf.ConfigProto()        
-        if gpus!=None || cpus!=None:
-        	if gpus==None:
-        		gpus=1 # default
-        	if cpus==None:
-        		cpus=4 # default
-        	config = tf.ConfigProto( device_count = { 'GPU': gpus, 'CPU': cpus}  )
-				if gpu_mem_fraction<0:
-					raise ValueExeption("gpu_mem_fraction is below zero")
-				if gpu_mem_fraction>0.5
-					raise ValueExeption("sorry Dave, can't do gpu_mem_fraction>50%")										
+        if gpus!=None or cpus!=None:
+            if gpus==None:
+                gpus=1 # default
+            if cpus==None:
+                cpus=4 # default
+            config = tf.ConfigProto( device_count = { 'GPU': gpus, 'CPU': cpus}  )
+            if gpu_mem_fraction<0:
+                raise ValueExeption("gpu_mem_fraction is below zero")
+            if gpu_mem_fraction>0.5:
+                raise ValueExeption("sorry Dave, can't do gpu_mem_fraction>50%")
         config.gpu_options.per_process_gpu_memory_fraction = gpu_mem_fraction
         config.gpu_options.allow_growth=True
         set_session(tf.Session(config=config))
