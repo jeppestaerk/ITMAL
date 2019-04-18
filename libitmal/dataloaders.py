@@ -3,6 +3,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.datasets import make_moons
 from sklearn.datasets import fetch_mldata
+from sklearn.datasets import load_iris
 from keras.datasets import mnist
 
 
@@ -57,4 +58,40 @@ def MOON_Plot(X, y, title="Moon dataset", xlabel="", ylabel=""):
     plt.show()
 
 
+def IRIS_GetDataSet():
+    iris_data = load_iris()
+    X = iris_data["data"]
+    y = iris_data["target"]
+    target_names = iris_data["target_names"]
+    feature_names = iris_data["feature_names"]
+    return X, y, target_names, feature_names
 
+
+def IRIS_PlotFeatures(X, y, targets, features):
+    colors = [None] * len(X)
+    for i in range(len(X)):
+        if y[i] == 0:
+            colors[i] = 'r'
+        elif y[i] == 1:
+            colors[i] = 'g'
+        else:
+            colors[i] = 'b'
+    fig, axes = plt.subplots(nrows=4, ncols=4, figsize=(10, 10),
+                             frameon=True)
+    title="Iris Data (Red=setosa,green=versicolor,blue=virginica)"
+    fig.suptitle(title, fontsize=16, y=0.92)
+    
+    for i in range(4):
+        for j in range(4):
+            ax = axes[i,j]
+            if i == j:
+                ax.text(0.5, 0.5, features[i], fontsize=12,
+                        transform=ax.transAxes,
+                        horizontalalignment='center',
+                        verticalalignment='center')
+                ax.get_yaxis().set_visible(False)
+                ax.get_xaxis().set_visible(False)
+            else:
+                ax.scatter(X[:,j], X[:,i], c=colors, s=3)
+    
+    plt.show()
